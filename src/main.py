@@ -23,8 +23,7 @@ def get_economist_df(file):
 def get_538_array(df, state_to_abbrev=settings.state_to_abbrev):
     """Get array of 538 predictions in order by state abbreviation"""
 
-    most_recent_model = df["modeldate"].max()
-    df = df[df["modeldate"] == most_recent_model]
+    df = df[df["modeldate"] == "11/2/2020"]
     df = df[df["state"].isin(state_to_abbrev)]
     df = df.replace({"state": state_to_abbrev})
     df = df.sort_values("state")
@@ -80,6 +79,9 @@ if __name__ == "__main__":
 
     array_538 = get_538_array(df_538)
     array_economist = get_economist_array(df_economist)
+
+    assert len(array_538) == 51
+    assert len(array_economist) == 51
 
     score_538 = get_brier_scores(array_538)
     score_economist = get_brier_scores(array_economist)
