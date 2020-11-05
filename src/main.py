@@ -1,11 +1,7 @@
-from io import StringIO
 import zipfile
 import random
-import statistics
 import argparse
-import logging
 
-import requests
 import pandas as pd
 import numpy as np
 from sklearn.metrics import brier_score_loss
@@ -13,35 +9,10 @@ from sklearn.metrics import brier_score_loss
 import settings
 
 
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
+def get_economist_df(file):
+    """Get dataframe of economist zip file"""
 
-
-def download_zip_from_url(url, target_file, chunk_size=100):
-    """Download zip from url to target file"""
-
-    response = requests.get(url, stream=True)
-    with open("/tmp/economist.zip", "wb") as fd:
-        for chunk in response.iter_content(chunk_size=chunk_size):
-            fd.write(chunk)
-
-    logging.info("Downloaded economist model to /tmp/economist.zip")
-
-
-def get_538_df(url):
-    """Get dataframe of 538 predictions"""
-
-    response = requests.get(url)
-    response_text = response.text
-    data = StringIO(response_text)
-    return pd.read_csv(data)
-
-
-def get_economist_df(url):
-    """Get dataframe of economist predictions"""
-
-    download_zip_from_url(url, "/tmp/economist.zip")
-
-    with zipfile.ZipFile("/tmp/economist.zip", "r") as z:
+    with zipfile.ZipFile(file, "r") as z:
         z.extractall("/tmp")
 
     return pd.read_csv(
@@ -80,40 +51,38 @@ def get_outcome(dem_win_by_state=settings.dem_win_by_state):
     return np.array(outcome)
 
 
-def get_brier_scores(test_array, trials):
-    """Get brier scores"""
+def get_brier_scores(
+    test_array, dem_win_by_state=settings.dem_win_by_state, decimals=3
+):
+    """Get brier score"""
 
-    scores = []
-    for x in range(trials):
-        outcome = get_outcome()
-        score = brier_score_loss(outcome, test_array)
-        scores.append(score)
-
-    return scores
+    outcome = [state[1] for state in dem_win_by_state]
+    return round(brier_score_loss(outcome, test_array), decimals)
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--trials", dest="trials", type=int, required=True, help="Trials to run",
+        "--csv_538",
+        dest="csv_538",
+        required=True,
+    )
+    parser.add_argument(
+        "--economist_zip",
+        dest="economist_zip",
+        required=True,
     )
     args = parser.parse_args()
 
-    df_538 = get_538_df(settings.url_538)
-    df_economist = get_economist_df(settings.url_economist)
+    df_538 = pd.read_csv(args.csv_538)
+    df_economist = get_economist_df(args.economist_zip)
 
     array_538 = get_538_array(df_538)
     array_economist = get_economist_array(df_economist)
 
-    scores_538 = get_brier_scores(array_538, args.trials)
-    scores_economist = get_brier_scores(array_economist, args.trials)
+    score_538 = get_brier_scores(array_538)
+    score_economist = get_brier_scores(array_economist)
 
-    mean_538 = statistics.mean(scores_538)
-    mean_economist = statistics.mean(scores_economist)
-
-    pstdev_538 = statistics.pstdev(scores_538)
-    pstdev_economist = statistics.pstdev(scores_economist)
-
-    logging.info(f"538 mean, pdstev: {mean_538}, {pstdev_538}")
-    logging.info(f"economist mean, pdstev: {mean_economist}, {pstdev_economist}")
+    print(f"538 score: {score_538}")
+    print(f"Economist score: {score_economist}")

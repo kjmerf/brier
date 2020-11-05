@@ -1,18 +1,11 @@
 # brier
 This repo can be used to compare the FiveThirtyEight presidential election model to the Economist model.
 The repo was inspired by the post here: https://www.metaculus.com/questions/5503/comparing-538-and-economist-forecasts-in-2020/.
-
-To run the comparison, set the test probabilities by adjusting the ```dem_win_by_state``` dictionary in ```src/settings.py``` or accept the defaults.
-Then create a virtual environment, install requirements, and run the program:
+To run the comparison, you need to download the predictions at: https://easyupload.io/sk8kiw.
+Then pass the input files to the program like this:
 ```shell
-# create a virtual environment
-python3 -m venv test_env
-source ./test_env/bin/activate
-# install requirements
-pip install -r requirements.txt
-# run the program
-python3 src/main.py --trials 10000
+python3 src/main.py \
+  --economist_zip=/tmp/economist_model_output.zip \
+  --csv_538=/tmp/538_state_toplines.csv
 ```
-
-The program generates a Brier score for each trial for each model.
-The mean and standard deviation of the set of scores is logged to the terminal for each model.
+Remember, the lower score wins!
