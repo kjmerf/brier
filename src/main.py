@@ -37,19 +37,6 @@ def get_economist_array(df, state_to_abbrev=settings.state_to_abbrev):
     return df["projected_win_prob"].to_numpy()
 
 
-def get_outcome(dem_win_by_state=settings.dem_win_by_state):
-    """Get election outcome"""
-
-    outcome = []
-    for state in dem_win_by_state:
-        if state[1] < random.random():
-            outcome.append(0)
-        else:
-            outcome.append(1)
-
-    return np.array(outcome)
-
-
 def get_brier_scores(
     test_array, dem_win_by_state=settings.dem_win_by_state, decimals=3
 ):
