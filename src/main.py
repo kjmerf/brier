@@ -67,9 +67,6 @@ if __name__ == "__main__":
     array_538 = get_538_array(df_538)
     array_economist = get_economist_array(df_economist)
 
-    assert len(array_538) == 51
-    assert len(array_economist) == 51
-
     score_538 = get_brier_scores(array_538)
     score_economist = get_brier_scores(array_economist)
 
